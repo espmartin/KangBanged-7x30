@@ -17,6 +17,9 @@
 #include <linux/kernel.h>
 #include <linux/err.h>
 #include <linux/spinlock.h>
+#include <linux/pm_qos.h>
+#include <linux/mutex.h>
+#include <linux/clk.h>
 #include <linux/string.h>
 #include <linux/module.h>
 #include <linux/clk.h>
