@@ -2888,6 +2888,8 @@ out:
 
 			/* If balanced, clear the congested flag */
 			zone_clear_flag(zone, ZONE_CONGESTED);
+			if (i <= *classzone_idx)
+				balanced += zone->present_pages;
 		}
 
 		if (zones_need_compaction)
