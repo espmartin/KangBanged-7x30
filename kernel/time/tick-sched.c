@@ -543,12 +543,10 @@ void tick_nohz_restart_sched_tick(void)
 	if (ts->idle_active)
 		tick_nohz_stop_idle(cpu, now);
 
-	if (!ts->inidle || !ts->tick_stopped) {
-		ts->inidle = 0;
+	if (!ts->tick_stopped) {
 		local_irq_enable();
 		return;
 	}
-
 
 	/* Update jiffies first */
 	select_nohz_load_balancer(0);
