@@ -681,6 +681,12 @@ static int __compact_pgdat(pg_data_t *pgdat, struct compact_control *cc)
 	struct zone *zone;
 
 	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
+		struct compact_control cc = {
+			.nr_freepages = 0,
+			.nr_migratepages = 0,
+			.order = -1,
+			.sync = true,
+		};
 
 		zone = &pgdat->node_zones[zoneid];
 		if (!populated_zone(zone))
