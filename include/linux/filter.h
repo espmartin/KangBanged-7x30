@@ -11,6 +11,7 @@
 
 #ifdef __KERNEL__
 #include <asm/atomic.h>
+#include <linux/rcu_types.h>
 #endif
 
 /*
