@@ -49,6 +49,7 @@
 #include <asm/mach/time.h>
 #include <asm/traps.h>
 #include <asm/unwind.h>
+#include <asm/memblock.h>
 #include <mach/board_htc.h>
 
 #if defined(CONFIG_DEPRECATED_PARAM_STRUCT)
