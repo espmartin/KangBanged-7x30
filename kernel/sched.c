@@ -2423,7 +2423,7 @@ static int select_fallback_rq(int cpu, struct task_struct *p)
 			continue;
 		if (!cpu_active(dest_cpu))
 			continue;
-		if (cpumask_test_cpu(dest_cpu, &p->cpus_allowed))
+		if (cpumask_test_cpu(dest_cpu, tsk_cpus_allowed(p)))
 			return dest_cpu;
 	}
 
@@ -2457,15 +2457,15 @@ static int select_fallback_rq(int cpu, struct task_struct *p)
 
 out:
 	if (state != cpuset) {
-			/*
-			 * Don't tell them about moving exiting tasks or
-			 * kernel threads (both mm NULL), since they never
-			 * leave kernel.
-			 */
-			if (p->mm && printk_ratelimit()) {
-					printk(KERN_DEBUG "process %d (%s) no longer affine to cpu%d\n",
-									task_pid_nr(p), p->comm, cpu);
-			}
+		/*
+		 * Don't tell them about moving exiting tasks or
+		 * kernel threads (both mm NULL), since they never
+		 * leave kernel.
+		 */
+		if (p->mm && printk_ratelimit()) {
+			printk(KERN_INFO "process %d (%s) no longer affine to cpu%d\n",
+					task_pid_nr(p), p->comm, cpu);
+		}
 	}
 
 	return dest_cpu;
