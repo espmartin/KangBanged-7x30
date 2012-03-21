@@ -680,13 +680,10 @@ static int __compact_pgdat(pg_data_t *pgdat, struct compact_control *cc)
 	int zoneid;
 	struct zone *zone;
 
+	/* Flush pending updates to the LRU lists */
+	lru_add_drain_all();
+
 	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
-		struct compact_control cc = {
-			.nr_freepages = 0,
-			.nr_migratepages = 0,
-			.order = -1,
-			.sync = true,
-		};
 
 		zone = &pgdat->node_zones[zoneid];
 		if (!populated_zone(zone))
@@ -720,12 +717,17 @@ int compact_pgdat(pg_data_t *pgdat, int order)
 
 static int compact_node(int nid)
 {
+	pg_data_t *pgdat;
 	struct compact_control cc = {
 		.order = -1,
 		.sync = true,
 	};
 
-	return __compact_pgdat(NODE_DATA(nid), &cc);
+	if (nid < 0 || nid >= nr_node_ids || !node_online(nid))
+		return -EINVAL;
+	pgdat = NODE_DATA(nid);
+
+	return __compact_pgdat(pgdat, &cc);
 }
 
 /* Compact all nodes in the system */
