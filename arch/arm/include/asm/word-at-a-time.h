@@ -5,7 +5,7 @@
 
 /*
  * Little-endian word-at-a-time zero byte handling.
- * Heavily based on the x86 algorithm.
+ * Algorithm copied from x86.
  */
 #include <linux/kernel.h>
 
@@ -33,61 +33,11 @@ static inline unsigned long create_zero_mask(unsigned long bits)
 
 static inline unsigned long find_zero(unsigned long mask)
 {
-	unsigned long ret;
-
-#if __LINUX_ARM_ARCH__ >= 5
-	/* We have clz available. */
-	ret = fls(mask) >> 3;
-#else
 	/* (000000 0000ff 00ffff ffffff) -> ( 1 1 2 3 ) */
-	ret = (0x0ff0001 + mask) >> 23;
+	long a = (0x0ff0001 + mask) >> 23;
 	/* Fix the 1 for 00 case */
-	ret &= mask;
-#endif
-
-	return ret;
+	return a & mask;
 }
-
-#ifdef CONFIG_DCACHE_WORD_ACCESS
-
-#define zero_bytemask(mask) (mask)
-
-/*
- * Load an unaligned word from kernel space.
- *
- * In the (very unlikely) case of the word being a page-crosser
- * and the next page not being mapped, take the exception and
- * return zeroes in the non-existing part.
- */
-static inline unsigned long load_unaligned_zeropad(const void *addr)
-{
-	unsigned long ret, offset;
-
-	/* Load word from unaligned pointer addr */
-	asm(
-	"1:	ldr	%0, [%2]\n"
-	"2:\n"
-	"	.pushsection .fixup,\"ax\"\n"
-	"	.align 2\n"
-	"3:	and	%1, %2, #0x3\n"
-	"	bic	%2, %2, #0x3\n"
-	"	ldr	%0, [%2]\n"
-	"	lsl	%1, %1, #0x3\n"
-	"	lsr	%0, %0, %1\n"
-	"	b	2b\n"
-	"	.popsection\n"
-	"	.pushsection __ex_table,\"a\"\n"
-	"	.align	3\n"
-	"	.long	1b, 3b\n"
-	"	.popsection"
-	: "=&r" (ret), "=&r" (offset)
-	: "r" (addr), "Qo" (*(unsigned long *)addr));
-
-	return ret;
-}
-
-
-#endif	/* DCACHE_WORD_ACCESS */
 
 #else	/* __ARMEB__ */
 #include <asm-generic/word-at-a-time.h>
