@@ -334,7 +334,7 @@ static void cpufreq_interactive_timer(unsigned long data)
 		boostpulse_duration = 0;
 	}
 
-	if (cpu_load >= go_hispeed_load || boostpulse_boosted_time) {
+	if (cpu_load >= go_hispeed_load || boostpulse_boosted_time || boost_val) {
 		if (pcpu->target_freq < hispeed_freq) {
 			new_freq = hispeed_freq;
 		} else {
@@ -380,8 +380,10 @@ static void cpufreq_interactive_timer(unsigned long data)
 		}
 	}
 
-	pcpu->floor_freq = new_freq;
-	pcpu->floor_validate_time = now;
+	if (boost_val == 0 || new_freq > hispeed_freq) {
+		pcpu->floor_freq = new_freq;
+		pcpu->floor_validate_time = now;
+	}
 
 	if (pcpu->target_freq == new_freq) {
 		trace_cpufreq_interactive_already(
