@@ -381,7 +381,7 @@ KBUILD_CFLAGS   := -Wstrict-prototypes -Wno-trigraphs \
                    -fmodulo-sched -fmodulo-sched-allow-regmoves \
 		   -funsafe-math-optimizations -fgcse-after-reload -ftree-vectorize -pipe \
 		   -funswitch-loops -fpredictive-commoning -floop-interchange \
-		   -floop-strip-mine -floop-block
+		   -floop-strip-mine -floop-block mfloat-abi=hard
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
