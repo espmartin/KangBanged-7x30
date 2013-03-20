@@ -676,47 +676,60 @@ unsigned long try_to_compact_pages(struct zonelist *zonelist,
 
 
 /* Compact all zones within a node */
-static int compact_node(int nid)
+static int __compact_pgdat(pg_data_t *pgdat, struct compact_control *cc)
 {
 	int zoneid;
-	pg_data_t *pgdat;
 	struct zone *zone;
 
-	if (nid < 0 || nid >= nr_node_ids || !node_online(nid))
-		return -EINVAL;
-	pgdat = NODE_DATA(nid);
-
-	/* Flush pending updates to the LRU lists */
-	lru_add_drain_all();
-
 	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
-		struct compact_control cc = {
-			.nr_freepages = 0,
-			.nr_migratepages = 0,
-			.order = -1,
-		};
 
 		zone = &pgdat->node_zones[zoneid];
 		if (!populated_zone(zone))
 			continue;
 
-		cc.zone = zone;
-		INIT_LIST_HEAD(&cc.freepages);
-		INIT_LIST_HEAD(&cc.migratepages);
+		cc->nr_freepages = 0;
+		cc->nr_migratepages = 0;
+		cc->zone = zone;
+		INIT_LIST_HEAD(&cc->freepages);
+		INIT_LIST_HEAD(&cc->migratepages);
 
-		compact_zone(zone, &cc);
+		if (cc->order < 0 || !compaction_deferred(zone))
+			compact_zone(zone, cc);
 
-		VM_BUG_ON(!list_empty(&cc.freepages));
-		VM_BUG_ON(!list_empty(&cc.migratepages));
+		VM_BUG_ON(!list_empty(&cc->freepages));
+		VM_BUG_ON(!list_empty(&cc->migratepages));
 	}
 
 	return 0;
 }
 
+int compact_pgdat(pg_data_t *pgdat, int order)
+{
+	struct compact_control cc = {
+		.order = order,
+		.sync = false,
+	};
+
+	return __compact_pgdat(pgdat, &cc);
+}
+
+static int compact_node(int nid)
+{
+	struct compact_control cc = {
+		.order = -1,
+		.sync = true,
+	};
+
+	return __compact_pgdat(NODE_DATA(nid), &cc);
+}
+
 /* Compact all nodes in the system */
-static void compact_nodes(void)
+static int compact_nodes(void)
 {
 	int nid;
+
+	/* Flush pending updates to the LRU lists */
+	lru_add_drain_all();
 
 	for_each_online_node(nid)
 		compact_node(nid);
@@ -748,7 +761,14 @@ ssize_t sysfs_compact_node(struct sys_device *dev,
 			struct sysdev_attribute *attr,
 			const char *buf, size_t count)
 {
-	compact_node(dev->id);
+	int nid = dev->id;
+
+	if (nid >= 0 && nid < nr_node_ids && node_online(nid)) {
+		/* Flush pending updates to the LRU lists */
+		lru_add_drain_all();
+
+		compact_node(nid);
+	}
 
 	return count;
 }

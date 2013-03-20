@@ -69,7 +69,7 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	struct msm_fb_data_type *mfd;
 	struct msm_panel_info *pinfo;
 
-	pr_debug("%s+:\n", __func__);
+	pr_debug("Start of %s....:\n", __func__);
 
 	mfd = platform_get_drvdata(pdev);
 	pinfo = &mfd->panel_info;
@@ -79,14 +79,7 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	else
 		down(&mfd->dma->mutex);
 
-	if (mfd->panel_info.type == MIPI_CMD_PANEL) {
-		mipi_dsi_prepare_clocks();
-		mipi_dsi_ahb_ctrl(1);
-		mipi_dsi_clk_enable();
-
-		/* make sure dsi_cmd_mdp is idle */
-		mipi_dsi_cmd_mdp_busy();
-	}
+	mdp4_overlay_dsi_state_set(ST_DSI_SUSPEND);
 
 	/*
 	 * Desctiption: change to DSI_CMD_MODE since it needed to
@@ -130,11 +123,10 @@ static int mipi_dsi_off(struct platform_device *pdev)
 	else
 		up(&mfd->dma->mutex);
 
-	pr_debug("%s-:\n", __func__);
-
 	return ret;
 }
 
+extern struct mdp4_overlay_perf perf_current;
 static int mipi_dsi_on(struct platform_device *pdev)
 {
 	int ret = 0;
@@ -148,8 +140,6 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	u32 ystride, bpp, data;
 	u32 dummy_xres, dummy_yres;
 	int target_type = 0;
-
-	pr_debug("%s+:\n", __func__);
 
 	mfd = platform_get_drvdata(pdev);
 	fbi = mfd->fbi;
@@ -170,7 +160,7 @@ static int mipi_dsi_on(struct platform_device *pdev)
 
 	mipi_dsi_phy_ctrl(1);
 
-	if (mdp_rev >= MDP_REV_42 && mipi_dsi_pdata)
+	if (mdp_rev == MDP_REV_42 && mipi_dsi_pdata)
 		target_type = mipi_dsi_pdata->target_type;
 
 	mipi_dsi_phy_init(0, &(mfd->panel_info), target_type);
@@ -261,8 +251,7 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	else
 		down(&mfd->dma->mutex);
 
-	if (mfd->op_enable)
-		ret = panel_next_on(pdev);
+	ret = panel_next_on(pdev);
 
 	mipi_dsi_op_mode_config(mipi->mode);
 
@@ -311,21 +300,20 @@ static int mipi_dsi_on(struct platform_device *pdev)
 			}
 			mipi_dsi_set_tear_on(mfd);
 		}
-		mipi_dsi_clk_disable();
-		mipi_dsi_ahb_ctrl(0);
-		mipi_dsi_unprepare_clocks();
 	}
 
 #ifdef CONFIG_MSM_BUS_SCALING
 	mdp_bus_scale_update_request(2);
+	perf_current.mdp_bw = OVERLAY_PERF_LEVEL4;
+	perf_current.mdp_clk_rate = 0;
 #endif
+
+	mdp4_overlay_dsi_state_set(ST_DSI_RESUME);
 
 	if (mdp_rev >= MDP_REV_41)
 		mutex_unlock(&mfd->dma->ov_mutex);
 	else
 		up(&mfd->dma->mutex);
-
-	pr_debug("%s-:\n", __func__);
 
 	return ret;
 }
@@ -384,7 +372,7 @@ static int mipi_dsi_probe(struct platform_device *pdev)
 
 		disable_irq(dsi_irq);
 
-		if (mdp_rev >= MDP_REV_42 && mipi_dsi_pdata &&
+		if (mdp_rev == MDP_REV_42 && mipi_dsi_pdata &&
 			mipi_dsi_pdata->target_type == 1) {
 			/* Target type is 1 for device with (De)serializer
 			 * 0x4f00000 is the base for TV Encoder.
@@ -448,9 +436,6 @@ static int mipi_dsi_probe(struct platform_device *pdev)
 
 	if (pdev_list_cnt >= MSM_FB_MAX_DEV_LIST)
 		return -ENOMEM;
-
-	if (!mfd->cont_splash_done)
-		cont_splash_clk_ctrl(1);
 
 	mdp_dev = platform_device_alloc("mdp", pdev->id);
 	if (!mdp_dev)
@@ -584,6 +569,9 @@ static int mipi_dsi_probe(struct platform_device *pdev)
 		goto mipi_dsi_probe_err;
 
 	pdev_list[pdev_list_cnt++] = pdev;
+
+    if (!mfd->cont_splash_done)
+		cont_splash_clk_ctrl(1);
 
 return 0;
 
