@@ -1,4 +1,4 @@
-/* Copyright (c) 2002,2007-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2002,2007-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -1145,7 +1145,7 @@ void adreno_regwrite(struct kgsl_device *device, unsigned int offsetwords,
 	__raw_writel(value, reg);
 }
 
-static void adreno_next_event(struct kgsl_device *device,
+static int adreno_next_event(struct kgsl_device *device,
 	struct kgsl_event *event)
 {
 	int status;
@@ -1190,6 +1190,7 @@ static void adreno_next_event(struct kgsl_device *device,
 					KGSL_CMD_FLAGS_NONE, &cmds[0], 2);
 		}
 	}
+	return status;
 }
 
 static int kgsl_check_interrupt_timestamp(struct kgsl_device *device,
@@ -1404,8 +1405,8 @@ static long adreno_ioctl(struct kgsl_device_private *dev_priv,
 
 static inline s64 adreno_ticks_to_us(u32 ticks, u32 gpu_freq)
 {
-	gpu_freq /= 1000000;
-	return ticks / gpu_freq;
+	s64 ticksus = (s64)ticks*1000000;
+	return div_u64(ticksus, gpu_freq);
 }
 
 static void adreno_power_stats(struct kgsl_device *device,

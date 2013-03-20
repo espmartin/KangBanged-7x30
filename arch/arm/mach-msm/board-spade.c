@@ -1903,12 +1903,40 @@ static struct msm_serial_hs_platform_data msm_uart_dm1_pdata = {
 	.host_wakeup_pin = SPADE_GPIO_BT_HOST_WAKE,
 };
 
+static struct resource bluesleep_resources[] = {
+    {
+        .name   = "gpio_host_wake",
+        .start  = SPADE_GPIO_BT_HOST_WAKE,
+        .end    = SPADE_GPIO_BT_HOST_WAKE,
+        .flags  = IORESOURCE_IO,
+    },
+    {
+        .name   = "gpio_ext_wake",
+        .start  = SPADE_GPIO_BT_CHIP_WAKE,
+        .end    = SPADE_GPIO_BT_CHIP_WAKE,
+        .flags  = IORESOURCE_IO,
+    },
+    {
+        .name   = "host_wake",
+        .start  = MSM_GPIO_TO_INT(SPADE_GPIO_BT_HOST_WAKE),
+        .end    = MSM_GPIO_TO_INT(SPADE_GPIO_BT_HOST_WAKE),
+        .flags  = IORESOURCE_IRQ,
+    },
+};
+
 #ifdef CONFIG_SERIAL_MSM_HS_PURE_ANDROID
 static struct bcm_bt_lpm_platform_data bcm_bt_lpm_pdata = {
   .gpio_wake = SPADE_GPIO_BT_CHIP_WAKE,
   .gpio_host_wake = SPADE_GPIO_BT_HOST_WAKE,
   .request_clock_off_locked = msm_hs_request_clock_off_locked,
   .request_clock_on_locked = msm_hs_request_clock_on_locked,
+};
+
+static struct platform_device msm_bluesleep_device = {
+    .name   = "bluesleep_bcm",
+    .id     = -1,
+    .num_resources  = ARRAY_SIZE(bluesleep_resources),
+    .resource   = bluesleep_resources,
 };
 
 struct platform_device spade_bcm_bt_lpm_device = {
@@ -3057,15 +3085,20 @@ static struct platform_device *devices[] __initdata = {
 #endif
 
         &htc_battery_pdev,
-	&ds2746_battery_pdev,
+        &ds2746_battery_pdev,
         &msm_ebi0_thermal,
         &msm_ebi1_thermal,
+#ifdef CONFIG_BT_MSM_SLEEP
+        &msm_bluesleep_device,
+#endif
 #ifdef CONFIG_SERIAL_MSM_HS
         &msm_device_uart_dm1,
 #endif
+
 #ifdef CONFIG_BT
         &spade_rfkill,
 #endif
+
 #ifdef CONFIG_ARCH_MSM_FLASHLIGHT
         &spade_flashlight_device,
 #endif
