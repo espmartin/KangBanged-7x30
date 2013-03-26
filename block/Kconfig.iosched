@@ -117,11 +117,13 @@ choice
 	config DEFAULT_CFQ
 		bool "CFQ" if IOSCHED_CFQ=y
 
+<<<<<<< HEAD
 	config DEFAULT_SIO
 		bool "SIO" if IOSCHED_SIO=y
-
+=======
 	config DEFAULT_FIOPS
 		bool "FIOPS" if IOSCHED_FIOPS=y
+>>>>>>> a836e38... block: fiops ioscheduler core
 
 	config DEFAULT_BFQ
 		bool "BFQ" if IOSCHED_BFQ=y
