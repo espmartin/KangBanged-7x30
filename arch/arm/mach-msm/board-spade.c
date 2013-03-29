@@ -1073,7 +1073,7 @@ static int marimba_tsadc_power(int vreg_on)
                    __func__, vregs_tsadc_name[i], rc);
             goto vreg_fail;
           }
-          
+
           rc = vreg_on ? vreg_enable(vregs_tsadc[i]) :
             vreg_disable(vregs_tsadc[i]);
           if (rc < 0) {
@@ -1092,9 +1092,9 @@ static int marimba_tsadc_power(int vreg_on)
           goto do_vote_fail;
         }
         msleep(5); /* ensure power is stable */
-        
+
         return 0;
-        
+
 do_vote_fail:
 vreg_fail:
 	while (i) {
@@ -1237,16 +1237,16 @@ static struct marimba_codec_platform_data mariba_codec_pdata = {
 };
 
 static struct marimba_platform_data marimba_pdata = {
-  //.slave_id[MARIMBA_SLAVE_ID_FM]       = MARIMBA_SLAVE_ID_FM_ADDR,
+	//.slave_id[MARIMBA_SLAVE_ID_FM]       = MARIMBA_SLAVE_ID_FM_ADDR,
 	.slave_id[MARIMBA_SLAVE_ID_CDC]	     = MARIMBA_SLAVE_ID_CDC_ADDR,
 	.slave_id[MARIMBA_SLAVE_ID_QMEMBIST] = MARIMBA_SLAVE_ID_QMEMBIST_ADDR,
 	.marimba_setup = msm_marimba_setup_power,
 	.marimba_shutdown = msm_marimba_shutdown_power,
-        //	.marimba_gpio_config = msm_marimba_gpio_config_svlte,
-        //	.fm = &marimba_fm_pdata,
-        .tsadc = &marimba_tsadc_pdata,
+	//	.marimba_gpio_config = msm_marimba_gpio_config_svlte,
+	//	.fm = &marimba_fm_pdata,
+	.tsadc = &marimba_tsadc_pdata,
 	.codec = &mariba_codec_pdata,
-        .tsadc_ssbi_adap = MARIMBA_SSBI_ADAP,
+	.tsadc_ssbi_adap = MARIMBA_SSBI_ADAP,
 };
 
 static void __init spade_init_marimba(void)
@@ -1773,24 +1773,26 @@ static struct android_pmem_platform_data android_pmem_adsp_pdata = {
 	.memory_type = MEMTYPE_EBI0,
 };
 
+static struct platform_device android_pmem_adsp_device = {
+	.name = "android_pmem",
+	.id = 2,
+	.dev = { .platform_data = &android_pmem_adsp_pdata },
+};
+
+#if 0
 static struct android_pmem_platform_data android_pmem_audio_pdata = {
-       .name = "pmem_audio",
-       .allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-       .cached = 0,
+	.name = "pmem_audio",
+	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
+	.cached = 0,
 	.memory_type = MEMTYPE_EBI0,
 };
 
-static struct platform_device android_pmem_adsp_device = {
-       .name = "android_pmem",
-       .id = 2,
-       .dev = { .platform_data = &android_pmem_adsp_pdata },
-};
-
 static struct platform_device android_pmem_audio_device = {
-       .name = "android_pmem",
-       .id = 4,
-       .dev = { .platform_data = &android_pmem_audio_pdata },
+	.name = "android_pmem",
+	.id = 4,
+	.dev = { .platform_data = &android_pmem_audio_pdata },
 };
+#endif
 
 static struct htc_battery_platform_data htc_battery_pdev_data = {
 	.func_show_batt_attr = htc_battery_show_attr,
@@ -3015,7 +3017,7 @@ static struct platform_device *devices[] __initdata = {
         &msm_rotator_device,
 #endif
         &android_pmem_adsp_device,
-        &android_pmem_audio_device,
+        /*&android_pmem_audio_device,*/
         &msm_device_i2c,
         &msm_device_i2c_2,
 #if defined(CONFIG_MSM7KV2_1X_AUDIO) || defined(CONFIG_MSM7KV2_AUDIO)
@@ -3246,6 +3248,7 @@ static int __init pmem_adsp_size_setup(char *p)
 }
 early_param("pmem_adsp_size", pmem_adsp_size_setup);
 
+#if 0
 static unsigned pmem_audio_size = MSM_PMEM_AUDIO_SIZE;
 static int __init pmem_audio_size_setup(char *p)
 {
@@ -3253,6 +3256,7 @@ static int __init pmem_audio_size_setup(char *p)
 	return 0;
 }
 early_param("pmem_audio_size", pmem_audio_size_setup);
+#endif
 
 #ifdef CONFIG_ION_MSM
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
@@ -3337,7 +3341,7 @@ static void __init size_pmem_devices(void)
 #ifdef CONFIG_ANDROID_PMEM
 #ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
 	android_pmem_adsp_pdata.size = pmem_adsp_size;
-	android_pmem_audio_pdata.size = pmem_audio_size;
+	//android_pmem_audio_pdata.size = pmem_audio_size;
 	android_pmem_pdata.size = pmem_sf_size;
 #endif
 #endif
@@ -3360,7 +3364,7 @@ static void __init reserve_pmem_memory(void)
 #ifdef CONFIG_ANDROID_PMEM
 #ifndef CONFIG_MSM_MULTIMEDIA_USE_ION
 	reserve_memory_for(&android_pmem_adsp_pdata);
-	reserve_memory_for(&android_pmem_audio_pdata);
+	//reserve_memory_for(&android_pmem_audio_pdata);
 	reserve_memory_for(&android_pmem_pdata);
 	msm7x30_reserve_table[MEMTYPE_EBI0].size += PMEM_KERNEL_EBI0_SIZE;
 #endif
