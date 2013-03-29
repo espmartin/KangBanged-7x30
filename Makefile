@@ -248,7 +248,7 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 HOSTCC       = gcc
 HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fomit-frame-pointer
+HOSTCFLAGS   = -Wmissing-prototypes -Wstrict-prototypes -O3 -fomit-frame-pointer
 HOSTCXXFLAGS = -O3
 
 # Decide whether to build built-in, modular, or both.
@@ -380,8 +380,7 @@ KBUILD_CFLAGS   := -Wstrict-prototypes -Wno-trigraphs \
 		   -fsingle-precision-constant -fpredictive-commoning -fipa-cp-clone \
                    -fmodulo-sched -fmodulo-sched-allow-regmoves \
 		   -funsafe-math-optimizations -fgcse-after-reload -ftree-vectorize -pipe \
-		   -funswitch-loops -fpredictive-commoning -floop-interchange \
-		   -floop-strip-mine -floop-block
+		   -funswitch-loops -fpredictive-commoning
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
