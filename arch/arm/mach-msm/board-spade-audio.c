@@ -458,9 +458,9 @@ void __init spade_audio_init(void)
 #endif
 	aic3254_register_ctl_ops(&cops);
 
-        pm8xxx_gpio_config(PM8058_GPIO_PM_TO_SYS(SPADE_AUD_EP_EN), &audio_pwr);
-        pm8xxx_gpio_config(PM8058_GPIO_PM_TO_SYS(SPADE_AUD_SPK_ENO), &audio_pwr);
-        pm8xxx_gpio_config(PM8058_GPIO_PM_TO_SYS(SPADE_AUD_HP_EN), &audio_pwr);
+	pm8xxx_gpio_config(SPADE_AUD_EP_EN, &audio_pwr);
+	pm8xxx_gpio_config(SPADE_AUD_SPK_ENO, &audio_pwr);
+	pm8xxx_gpio_config(SPADE_AUD_HP_EN, &audio_pwr);
 
 	/* Rest AIC3254 */
 	gpio_set_value(SPADE_AUD_CODEC_RST, 0);
