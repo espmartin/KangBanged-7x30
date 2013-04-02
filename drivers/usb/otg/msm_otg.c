@@ -38,7 +38,7 @@
 #include <linux/usb/htc_info.h>
 #include <linux/regulator/consumer.h>
 #include <linux/mfd/pm8xxx/pm8921-charger.h>
-#include <linux/pm_qos_params.h>
+#include <linux/pm_qos.h>
 
 #include <mach/clk.h>
 #include <mach/cable_detect.h>

@@ -15,7 +15,7 @@
 
 #include <linux/idr.h>
 #include <linux/wakelock.h>
-#include <linux/pm_qos_params.h>
+#include <linux/pm_qos.h>
 #include <linux/earlysuspend.h>
 
 #include "kgsl.h"

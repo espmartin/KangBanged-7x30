@@ -23,7 +23,7 @@
 #include <linux/pm_runtime.h>
 
 #include <linux/device.h>
-#include <linux/pm_qos_params.h>
+#include <linux/pm_qos.h>
 #include <mach/msm_hsusb_hw.h>
 #include <mach/msm72k_otg.h>
 #include <mach/msm_hsusb.h>

@@ -58,7 +58,7 @@
 #include <linux/delay.h>
 #include <linux/clk.h>
 #include <linux/io.h>
-#include <linux/pm_qos_params.h>
+#include <linux/pm_qos.h>
 #include <mach/gpio.h>
 #include <mach/board.h>
 #include <mach/camera-7x30.h>

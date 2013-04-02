@@ -20,7 +20,7 @@
 #define __ASM_ARCH_MSM_HSUSB_H
 
 #include <linux/types.h>
-#include <linux/pm_qos_params.h>
+#include <linux/pm_qos.h>
 
 #define PHY_TYPE_MASK		0x0F
 #define PHY_TYPE_MODE		0xF0

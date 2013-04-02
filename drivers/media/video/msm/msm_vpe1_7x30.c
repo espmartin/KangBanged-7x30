@@ -22,7 +22,7 @@
 #include <linux/io.h>
 #include "msm_vpe1_7x30.h"
 #include <mach/msm_reqs.h>
-#include <linux/pm_qos_params.h>
+#include <linux/pm_qos.h>
 #include <linux/clk.h>
 #include <linux/slab.h>
 #include <mach/clk.h>

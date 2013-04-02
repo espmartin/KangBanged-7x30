@@ -30,7 +30,7 @@
 #include <linux/mutex.h>
 #include <linux/timer.h>
 #include <linux/remote_spinlock.h>
-#include <linux/pm_qos_params.h>
+#include <linux/pm_qos.h>
 #include <mach/gpio.h>
 
 

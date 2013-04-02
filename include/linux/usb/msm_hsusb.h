@@ -23,7 +23,7 @@
 #include <linux/wakelock.h>
 #include <mach/board.h>
 #include <mach/msm_xo.h>
-#include <linux/pm_qos_params.h>
+#include <linux/pm_qos.h>
 
 /**
  * Supported USB modes
