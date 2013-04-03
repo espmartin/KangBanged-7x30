@@ -28,7 +28,7 @@
 #include "../inc/tdsm.h"
 #include "../inc/defs.h"
 
-#define DelayMS(a) hr_msleep(a)
+#define DelayMS(a) msleep(a)
 
 extern void I2C_ReadModifyWriteByte(uint8_t deviceID, uint8_t offset, uint8_t mask, uint8_t value);
 unsigned char toggleCbus = 0;

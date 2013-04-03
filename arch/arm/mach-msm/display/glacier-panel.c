@@ -590,7 +590,7 @@ glacier_panel_unblank(struct msm_mddi_bridge_platform_data *bridge_data,
 	}
 
 	client_data->remote_write(client_data, 0x24, 0x5300);
-	hr_msleep(30);
+	msleep(30);
 	glacier_backlight_switch(LED_FULL);
 	client_data->auto_hibernate(client_data, 1);
 
@@ -626,29 +626,29 @@ mddi_novatec_power(struct msm_mddi_client_data *client_data, int on)
 				clk_set_rate(axi_clk, 192000000);
 
 			vreg_enable(vreg_ldo20);
-			hr_msleep(5);
+			msleep(5);
 			vreg_disable(vreg_ldo20);
-			hr_msleep(55);
+			msleep(55);
 			gpio_set_value(GLACIER_LCD_2V85_EN, 1);
 			/* OJ_2V85*/
 			vreg_enable(vreg_ldo12);
-			hr_msleep(1);
+			msleep(1);
 			vreg_enable(vreg_ldo20);
-			hr_msleep(2);
+			msleep(2);
 			vreg_enable(vreg_ldo19);
-			hr_msleep(2);
+			msleep(2);
 			gpio_set_value(GLACIER_MDDI_RSTz, 1);
-			hr_msleep(2);
+			msleep(2);
 			gpio_set_value(GLACIER_MDDI_RSTz, 0);
-			hr_msleep(2);
+			msleep(2);
 			gpio_set_value(GLACIER_MDDI_RSTz, 1);
-			hr_msleep(65);
+			msleep(65);
 		} else {
-			hr_msleep(130);
+			msleep(130);
 			gpio_set_value(GLACIER_MDDI_RSTz, 0);
-			hr_msleep(15);
+			msleep(15);
 			vreg_disable(vreg_ldo20);
-			hr_msleep(15);
+			msleep(15);
 			vreg_disable(vreg_ldo19);
 			/* OJ_2V85*/
 			vreg_disable(vreg_ldo12);
@@ -663,29 +663,29 @@ mddi_novatec_power(struct msm_mddi_client_data *client_data, int on)
 				clk_set_rate(axi_clk, 192000000);
 
 			vreg_enable(vreg_ldo20);
-			hr_msleep(5);
+			msleep(5);
 			vreg_disable(vreg_ldo20);
-			hr_msleep(55);
+			msleep(55);
 			gpio_set_value(GLACIER_LCD_2V85_EN, 1);
 			/* OJ_2V85*/
 			vreg_enable(vreg_ldo12);
-			hr_msleep(1);
+			msleep(1);
 			vreg_enable(vreg_ldo20);
-			hr_msleep(2);
+			msleep(2);
 			vreg_enable(vreg_ldo19);
-			hr_msleep(2);
+			msleep(2);
 			gpio_set_value(GLACIER_MDDI_RSTz, 1);
-			hr_msleep(2);
+			msleep(2);
 			gpio_set_value(GLACIER_MDDI_RSTz, 0);
-			hr_msleep(2);
+			msleep(2);
 			gpio_set_value(GLACIER_MDDI_RSTz, 1);
-			hr_msleep(65);
+			msleep(65);
 		} else {
-			hr_msleep(130);
+			msleep(130);
 			gpio_set_value(GLACIER_MDDI_RSTz, 0);
-			hr_msleep(15);
+			msleep(15);
 			vreg_disable(vreg_ldo20);
-			hr_msleep(15);
+			msleep(15);
 			vreg_disable(vreg_ldo19);
 			/* OJ_2V85*/
 			vreg_disable(vreg_ldo12);

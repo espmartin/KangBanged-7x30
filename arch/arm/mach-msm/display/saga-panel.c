@@ -195,17 +195,17 @@ static int panel_sony_power(int on)
 	}
 
 	if (on) {
-		hr_msleep(10);
+		msleep(10);
 		gpio_set_value(SAGA_LCD_RSTz_ID1, 1);
-		hr_msleep(10);
+		msleep(10);
 		gpio_set_value(SAGA_LCD_RSTz_ID1, 0);
 		udelay(500);
 		gpio_set_value(SAGA_LCD_RSTz_ID1, 1);
-		hr_msleep(10);
+		msleep(10);
 	} else if (!on) {
-		hr_msleep(10);
+		msleep(10);
 		gpio_set_value(SAGA_LCD_RSTz_ID1, 0);
-		hr_msleep(120);
+		msleep(120);
 	}
 
 	if(!on) {
@@ -267,9 +267,9 @@ mddi_hitachi_power(u32 on)
           vreg_enable(vreg_ldo19);
           gpio_set_value(SAGA_MDDI_RSTz,0);
           vreg_enable(vreg_ldo20);
-          hr_msleep(1);
+          msleep(1);
           gpio_set_value(SAGA_MDDI_RSTz,1);
-          hr_msleep(5);
+          msleep(5);
         }
         return 1;
 }

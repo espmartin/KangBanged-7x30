@@ -824,7 +824,7 @@ start:
 		printk(KERN_INFO "[TP]No Himax chip inside\n");
 		return -EIO;
 	} else {
-		hr_msleep(150);
+		msleep(150);
 
 		cmd[0] = 0x36;
 		cmd[1] = 0x0F;
@@ -835,7 +835,7 @@ start:
 		cmd[2] = 0x02;
 		i2c_api->i2c_himax_master_write(client, cmd , sizeof(cmd), normalRetry);
 		i2c_api->i2c_himax_write_command(client, 0x83, normalRetry);
-		hr_msleep(100);
+		msleep(100);
 		i2c_api->i2c_himax_write_command(client, 0x82, normalRetry);
 		i2c_api->i2c_himax_write_command(client, 0xF5, normalRetry);
 		i2c_api->i2c_himax_read_command(client, 1, &tw_id, &act_len, normalRetry);
@@ -900,7 +900,7 @@ start:
 	do {
 		if (retryTimes == 5) {
 			pdata->reset();
-			hr_msleep(50);
+			msleep(50);
 			++retryTimes;
 			goto start;
 		} else if (retryTimes == 11) {
@@ -978,7 +978,7 @@ start:
 	i2c_api->i2c_himax_master_write(client, cmd , 2, normalRetry);
 
 	i2c_api->i2c_himax_write_command(client, 0x83, normalRetry);
-	hr_msleep(100);
+	msleep(100);
 
 	return result;
 }

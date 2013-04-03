@@ -363,7 +363,7 @@ static void curcial_oj_work_func(struct work_struct *work)
 		mDeltaX = 0;
 		mDeltaY = 0;
 		if (polling_delay)
-			hr_msleep(polling_delay);
+			msleep(polling_delay);
 			} while ((data[0] & 0x80) && (!atomic_read(&suspend_flag)));
 
 

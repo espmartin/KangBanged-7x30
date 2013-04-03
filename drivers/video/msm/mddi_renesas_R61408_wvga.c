@@ -196,7 +196,7 @@ do_renesas_cmd(struct mddi_cmd *cmd_table, ssize_t size)
             printk(KERN_ERR "%s: failed multiwrite (%d)\n", __func__, ret);
           //write_client_reg(pcmd->vals, pcmd->cmd, pcmd->len);
           if (pcmd->delay)
-            hr_msleep(pcmd->delay);
+            msleep(pcmd->delay);
 	}
 }
 
@@ -332,11 +332,11 @@ static int renesas_lcd_off(struct platform_device *pdev)
   saga_backlight_switch(LED_OFF);
   write_client_reg(0x0, 0xB8);
   //  write_client_reg(0x03, 0xB0);
-  hr_msleep(72);
+  msleep(72);
         // uninit
         //	client_data->auto_hibernate(client_data, 0);
   write_client_reg(0x0, 0x10);
-  hr_msleep(72);
+  msleep(72);
   //	client_data->auto_hibernate(client_data, 1); 
   //	return bridge_data->blank(bridge_data, client_data);
   return 0;
@@ -352,7 +352,7 @@ static int renesas_lcd_on(struct platform_device *pdev)
   //write_client_reg(0x04, 0xB0);
 
   write_client_reg(0x0, 0x11);
-  hr_msleep(125);
+  msleep(125);
   //        do_renesas_cmd(gama, ARRAY_SIZE(gama));
   saga_backlight_switch(LED_FULL);
   write_client_reg(0x0, 0x29);

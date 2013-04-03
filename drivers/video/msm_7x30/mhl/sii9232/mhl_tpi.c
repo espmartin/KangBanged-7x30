@@ -97,7 +97,7 @@ extern bool HDCP_Success;
 #define DDC_XLTN_TIMEOUT_MAX_VAL		0x30
 #define CLEAR_CBUS_TOGGLE()     (toggleCbus = 0)
 #define TPI_SLAVE_ADDR		((uint8_t)(mhl_tpi_info->i2c_addr_tpi))
-#define DelayMS(a)		hr_msleep(a)
+#define DelayMS(a)		msleep(a)
 #define CALL_CBUS_WAKEUP_GENERATOR(addr)	CbusWakeUpGenerator(addr) 
 #define INTERVAL_RSEN_DEGLITCH 150
 #define TXSF_D0_NO_CONNECTION_DOWNSTREAM_POWER 0

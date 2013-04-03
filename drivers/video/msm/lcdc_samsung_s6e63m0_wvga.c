@@ -200,7 +200,7 @@ static int samsung_oled_panel_init(void)
 	lcm_write_seq(lcm_init_seq, ARRAY_SIZE(lcm_init_seq));
 	/* standby off */
 	qspi_send_9bit(&init_cmd);
-	hr_msleep(120);
+	msleep(120);
 	mutex_unlock(&panel_lock);
 	wake_unlock(&panel_idle_lock);
 	return 0;
@@ -231,7 +231,7 @@ static int amoled_panel_blank(struct platform_device *pdata)
 	LCMDBG("%s\n", __func__);
 	mutex_lock(&panel_lock);
 	qspi_send_9bit(&blank_cmd);
-	hr_msleep(120);
+	msleep(120);
 	mutex_unlock(&panel_lock);
 	amoled_panel_power(0);
 	led_trigger_event(amoled_lcd_backlight, LED_OFF);

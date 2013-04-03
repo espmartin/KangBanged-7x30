@@ -284,10 +284,10 @@ static int sonywvga_panel_init(void)
 	wake_lock(&panel_idle_lock);
 	mutex_lock(&panel_lock);
 	sonywvga_panel_power(1);
-	hr_msleep(100);
+	msleep(100);
 
 	qspi_send_9bit(&init_cmd);
-	hr_msleep(5);
+	msleep(5);
 	if (is_sony_RGB666()) {
 		init_data = 0x06;
 		qspi_send_9bit(&init_cmd2);
@@ -311,11 +311,11 @@ static int sonywvga_panel_unblank(struct platform_device *pdev)
 	wake_lock(&panel_idle_lock);
 	mutex_lock(&panel_lock);
 
-	hr_msleep(100);
+	msleep(100);
 	printk(KERN_ERR "%s: will send unblank\n",__func__);
 	qspi_send_9bit(&unblank_msg);
 	printk(KERN_ERR "%s: good!\n",__func__);
-	hr_msleep(20);
+	msleep(20);
 
 	//init gamma setting
 	if(!is_sony_with_gamma())
@@ -341,7 +341,7 @@ static int sonywvga_panel_blank(struct platform_device *pdev)
 	qspi_send_9bit(&blank_msg);
 	blank_msg.cmd = 0x10;
 	qspi_send_9bit(&blank_msg);
-	hr_msleep(40);
+	msleep(40);
 	g_unblank_stage = 0;
 	mutex_unlock(&panel_lock);
 	sonywvga_panel_power(0);

@@ -231,7 +231,7 @@ static int lcm_auo_write_seq(struct lcm_cmd *cmd_table, unsigned size)
 
         for (i = 0; i < size; i++) {
 		if (cmd_table[i].cmd == LCM_MDELAY) {
-			hr_msleep(cmd_table[i].data);
+			msleep(cmd_table[i].data);
 			continue;
 		}
 		qspi_send_16bit(cmd_table[i].cmd, cmd_table[i].data);
@@ -670,7 +670,7 @@ static int lcm_sharp_write_seq(struct spi_msg *cmd_table, unsigned size)
 
 	for (i = 0; i < size; i++) {
 		if (cmd_table[i].cmd == LCM_MDELAY) {
-			hr_msleep(cmd_table[i].data[0]);
+			msleep(cmd_table[i].data[0]);
 			continue;
 		}
 		qspi_send_9bit(cmd_table + i);

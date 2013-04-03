@@ -153,7 +153,7 @@ static int sii9232_get_intr_status(void)
 static void sii9232_reset(void)
 {
 	gpio_set_value(sii9232_info_ptr->reset_pin, 0);
-	hr_msleep(100);
+	msleep(100);
 	gpio_set_value(sii9232_info_ptr->reset_pin, 1);
 }
 

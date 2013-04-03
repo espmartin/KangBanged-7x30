@@ -783,11 +783,6 @@ static long wb_writeback(struct bdi_writeback *wb,
 		if (list_empty(&wb->b_more_io))
 			break;
 		/*
-		 * Did we write something? Try for more
-		 */
-		if (wbc.nr_to_write < write_chunk)
-			continue;
-		/*
 		 * Nothing written. Wait for some inode to
 		 * become available for writeback. Otherwise
 		 * we'll just busyloop.

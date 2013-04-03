@@ -422,7 +422,7 @@ do_renesas_cmd(struct msm_mddi_client_data *client_data, struct mddi_cmd *cmd_ta
 		client_data->remote_write_vals(client_data, pcmd->vals,
 			pcmd->cmd, pcmd->len);
 		if (pcmd->delay)
-			hr_msleep(pcmd->delay);
+			msleep(pcmd->delay);
 	}
 }
 
@@ -875,7 +875,7 @@ vivow_mddi_init(struct msm_mddi_bridge_platform_data *bridge_data,
 			reg = cpu_to_le32(init_seq[i].reg);
 			val = cpu_to_le32(init_seq[i].val);
 			if (reg == REG_WAIT)
-				hr_msleep(val);
+				msleep(val);
 			else {
 				client_data->remote_write(client_data, val, reg);
 				if (reg == 0x1100)
@@ -910,7 +910,7 @@ vivow_panel_blank(struct msm_mddi_bridge_platform_data *bridge_data,
 		vivow_backlight_switch(LED_OFF);
 		client_data->remote_write(client_data, 0x0, 0xB8);
 		client_data->remote_write(client_data, 0x0, 0x10);
-		hr_msleep(72);
+		msleep(72);
 	}else {
 
 		client_data->remote_write(client_data, 0x0, 0x5300);
@@ -936,7 +936,7 @@ vivow_panel_unblank(struct msm_mddi_bridge_platform_data *bridge_data,
 			color_enhancement = 1;
 		}
 		client_data->remote_write(client_data, 0x0, 0x11);
-		hr_msleep(125);
+		msleep(125);
 		vivow_backlight_switch(LED_FULL);
 		do_renesas_cmd(client_data, hitachi_renesas_driving_cmd, ARRAY_SIZE(hitachi_renesas_driving_cmd));
 		client_data->remote_write(client_data, 0x0, 0x29);
@@ -944,7 +944,7 @@ vivow_panel_unblank(struct msm_mddi_bridge_platform_data *bridge_data,
 	}else {
 		client_data->remote_write(client_data, 0x24, 0x5300);
 		client_data->remote_write(client_data, 0x0A, 0x22C0);
-		hr_msleep(30);
+		msleep(30);
 		vivow_backlight_switch(LED_FULL);
 	}
 	client_data->auto_hibernate(client_data, 1);
@@ -1008,39 +1008,39 @@ mddi_power(struct msm_mddi_client_data *client_data, int on)
 		if(panel_type == PANEL_VIVOW_HITACHI) {
 			vreg_enable(V_LCMIO_1V8);
 			vreg_enable(V_LCM_2V85);
-			hr_msleep(1);
+			msleep(1);
 
 			gpio_set_value(VIVOW_LCD_RSTz, 1);
-			hr_msleep(5);
+			msleep(5);
 			gpio_set_value(VIVOW_LCD_RSTz, 0);
-			hr_msleep(1);
+			msleep(1);
 			gpio_set_value(VIVOW_LCD_RSTz, 1);
-			hr_msleep(5);
+			msleep(5);
 		} else {
 			vreg_enable(V_LCM_2V85);
-			hr_msleep(3);
+			msleep(3);
 			vreg_enable(V_LCMIO_1V8);
-			hr_msleep(5);
+			msleep(5);
 
 			gpio_set_value(VIVOW_LCD_RSTz, 1);
-			hr_msleep(1);
+			msleep(1);
 			gpio_set_value(VIVOW_LCD_RSTz, 0);
-			hr_msleep(1);
+			msleep(1);
 			gpio_set_value(VIVOW_LCD_RSTz, 1);
-			hr_msleep(15);
+			msleep(15);
 		}
 
 	} else {
 
 		if(panel_type == PANEL_VIVOW_HITACHI) {
 			gpio_set_value(VIVOW_LCD_RSTz, 0);
-			hr_msleep(10);
+			msleep(10);
 			vreg_disable(V_LCM_2V85);
 			vreg_disable(V_LCMIO_1V8);
 		} else {
-			hr_msleep(80);
+			msleep(80);
 			gpio_set_value(VIVOW_LCD_RSTz, 0);
-			hr_msleep(10);
+			msleep(10);
 			vreg_disable(V_LCMIO_1V8);
 			vreg_disable(V_LCM_2V85);
 		}

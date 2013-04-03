@@ -121,44 +121,44 @@ int panel_power_on(void)
            __func__, rc);
     return -1;
   }
-  hr_msleep(5);
+  msleep(5);
   rc = vreg_enable(vreg_ldo12);
   if (rc) {
     pr_err("%s: LDO12 vreg enable failed (%d)\n",
            __func__, rc);
     return -1;
   }
-  hr_msleep(5);
+  msleep(5);
   rc = vreg_enable(vreg_ldo20);
   if (rc) {
     pr_err("%s: LDO20 vreg enable failed (%d)\n",
            __func__, rc);
     return -1;
   }
-  hr_msleep(5);
+  msleep(5);
 
   if (is_samsung_panel())
     {
-      hr_msleep(5);
+      msleep(5);
       gpio_set_value(VISION_LCD_RSTz, 1);
-      hr_msleep(25);
+      msleep(25);
       gpio_set_value(VISION_LCD_RSTz, 0);
-      hr_msleep(10);
+      msleep(10);
       gpio_set_value(VISION_LCD_RSTz, 1);
-      hr_msleep(20);
+      msleep(20);
       /* XA, XB board has HW panel issue, need to set EL_EN pin */
       if(system_rev <= 1)
         gpio_set_value(VISION_EL_EN, 1);
     }
   else
     {
-      hr_msleep(10);
+      msleep(10);
       gpio_set_value(VISION_LCD_RSTz, 1);
-      hr_msleep(10);
+      msleep(10);
       gpio_set_value(VISION_LCD_RSTz, 0);
       udelay(500);
       gpio_set_value(VISION_LCD_RSTz, 1);
-      hr_msleep(10);
+      msleep(10);
     }
 
   return 0;
@@ -170,16 +170,16 @@ int panel_power_off(void)
 
   if (is_samsung_panel())
     {
-      hr_msleep(5);
+      msleep(5);
       if(system_rev <= 1)
         gpio_set_value(VISION_EL_EN, 0);
       gpio_set_value(VISION_LCD_RSTz, 0);
     }
   else
     {
-      hr_msleep(10);
+      msleep(10);
       gpio_set_value(VISION_LCD_RSTz, 0);
-      hr_msleep(120);
+      msleep(120);
     }
 
   rc = vreg_disable(vreg_ldo12);
@@ -189,7 +189,7 @@ int panel_power_off(void)
              __func__, rc);
       return -1;
     }
-  hr_msleep(5);
+  msleep(5);
   rc = vreg_disable(vreg_ldo19);
   if (rc)
     {
@@ -197,7 +197,7 @@ int panel_power_off(void)
              __func__, rc);
       return -1;
     }
-  hr_msleep(5);
+  msleep(5);
   rc = vreg_disable(vreg_ldo20);
   if (rc)
     {
@@ -205,7 +205,7 @@ int panel_power_off(void)
              __func__, rc);
       return -1;
     }
-  hr_msleep(5);
+  msleep(5);
   return 0;
 }
 
