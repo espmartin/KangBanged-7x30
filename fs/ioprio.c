@@ -30,7 +30,7 @@
 
 int set_task_ioprio(struct task_struct *task, int ioprio)
 {
-	int err, i;
+	int err;
 	struct io_context *ioc;
 	const struct cred *cred = current_cred(), *tcred;
 

@@ -1,7 +1,6 @@
 #ifndef IOCONTEXT_H
 #define IOCONTEXT_H
 
-#include <linux/bitmap.h>
 #include <linux/radix-tree.h>
 #include <linux/rcupdate.h>
 #include <linux/workqueue.h>
@@ -90,16 +89,6 @@ struct io_cq {
 	};
 
 	unsigned long		changed;
-};
-
-/*
- * Indexes into the ioprio_changed bitmap.  A bit set indicates that
- * the corresponding I/O scheduler needs to see a ioprio update.
- */
-enum {
-	IOC_CFQ_IOPRIO_CHANGED,
-	IOC_BFQ_IOPRIO_CHANGED,
-	IOC_IOPRIO_CHANGED_BITS
 };
 
 /*
