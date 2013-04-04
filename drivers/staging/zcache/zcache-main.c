@@ -1943,11 +1943,6 @@ static int __init zcache_init(void)
 			pr_err("zcache: can't register cpu notifier\n");
 			goto out;
 		}
-		ret = zcache_comp_init();
-		if (ret) {
-			pr_err("zcache: compressor initialization failed\n");
-			goto out;
-		}
 		for_each_online_cpu(cpu) {
 			void *pcpu = (void *)(long)cpu;
 			zcache_cpu_notifier(&zcache_cpu_notifier_block,

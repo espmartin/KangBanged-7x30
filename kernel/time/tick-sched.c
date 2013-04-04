@@ -27,6 +27,9 @@
 #include "tick-internal.h"
 
 const int softirq_stop_idle_mask = (~(1 << RCU_SOFTIRQ));
+struct rq_data rq_info;
+struct workqueue_struct *rq_wq;
+spinlock_t rq_lock;
 
 /*
  * Per cpu nohz control structure
