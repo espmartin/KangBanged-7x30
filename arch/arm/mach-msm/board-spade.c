@@ -1237,13 +1237,13 @@ static struct marimba_codec_platform_data mariba_codec_pdata = {
 };
 
 static struct marimba_platform_data marimba_pdata = {
-	.slave_id[MARIMBA_SLAVE_ID_FM]       = MARIMBA_SLAVE_ID_FM_ADDR,
+	//.slave_id[MARIMBA_SLAVE_ID_FM]       = MARIMBA_SLAVE_ID_FM_ADDR,
 	.slave_id[MARIMBA_SLAVE_ID_CDC]	     = MARIMBA_SLAVE_ID_CDC_ADDR,
 	.slave_id[MARIMBA_SLAVE_ID_QMEMBIST] = MARIMBA_SLAVE_ID_QMEMBIST_ADDR,
 	.marimba_setup = msm_marimba_setup_power,
 	.marimba_shutdown = msm_marimba_shutdown_power,
-		.marimba_gpio_config = msm_marimba_gpio_config_svlte,
-		.fm = &marimba_fm_pdata,
+	//	.marimba_gpio_config = msm_marimba_gpio_config_svlte,
+	//	.fm = &marimba_fm_pdata,
 	.tsadc = &marimba_tsadc_pdata,
 	.codec = &mariba_codec_pdata,
 	.tsadc_ssbi_adap = MARIMBA_SSBI_ADAP,
