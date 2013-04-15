@@ -380,8 +380,12 @@ KBUILD_CFLAGS   := -Wstrict-prototypes -Wno-trigraphs \
 		   -fsingle-precision-constant -fpredictive-commoning -fipa-cp-clone \
                    -fmodulo-sched -fmodulo-sched-allow-regmoves \
 		   -funsafe-math-optimizations -fgcse-after-reload -ftree-vectorize -pipe \
-		   -funswitch-loops -fpredictive-commoning -floop-interchange \
-		   -floop-strip-mine -floop-block
+		   -funswitch-loops -fpredictive-commoning
+
+ifdef CONFIG_CC_GRAPHITE_OPTIMIZATION
+KBUILD_CFLAGS   := -floop-interchange -floop-strip-mine \
+                   -floop-block
+endif
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
