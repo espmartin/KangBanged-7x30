@@ -354,12 +354,12 @@ CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-MODFLAGS  = -DMODULE -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mtune=cortex-a9 -march=armv7-a -mfpu=neon -mvectorize-with-neon-quad -ftree-vectorize -funswitch-loops
+MODFLAGS  = -DMODULE -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mtune=cortex-a9 -march=armv7-a -mfpu=neon -mvectorize-with-neon-quad -ftree-vectorize -funroll-loops
 CFLAGS_MODULE   = $(MODFLAGS)
 AFLAGS_MODULE   = $(MODFLAGS)
 LDFLAGS_MODULE  = -T $(srctree)/scripts/module-common.lds
-CFLAGS_KERNEL  = -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mtune=cortex-a9 -march=armv7-a -mfpu=neon -mvectorize-with-neon-quad -ftree-vectorize -funswitch-loops
-AFLAGS_KERNEL  = -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mtune=cortex-a9 -march=armv7-a -mfpu=neon -mvectorize-with-neon-quad -ftree-vectorize -funswitch-loops
+CFLAGS_KERNEL  = -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mtune=cortex-a9 -march=armv7-a -mfpu=neon -mvectorize-with-neon-quad -ftree-vectorize -funroll-loops
+AFLAGS_KERNEL  = -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mtune=cortex-a9 -march=armv7-a -mfpu=neon -mvectorize-with-neon-quad -ftree-vectorize -funroll-loops
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
 
@@ -380,7 +380,7 @@ KBUILD_CFLAGS   := -Wall -Wstrict-prototypes -Wno-trigraphs \
 		   -fsingle-precision-constant -fpredictive-commoning -fipa-cp-clone \
                    -fmodulo-sched -fmodulo-sched-allow-regmoves \
 		   -funsafe-math-optimizations -fgcse-after-reload -ftree-vectorize -pipe \
-		   -funswitch-loops -fpredictive-commoning
+		   -funroll-loops -fpredictive-commoning
 
 ifdef CONFIG_CC_GRAPHITE_OPTIMIZATION
 KBUILD_CFLAGS   := -floop-interchange -floop-strip-mine \
