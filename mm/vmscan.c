@@ -2352,7 +2352,7 @@ static unsigned long do_try_to_free_pages(struct zonelist *zonelist,
 	struct zoneref *z;
 	struct zone *zone;
 	unsigned long writeback_threshold;
-	bool aborted_reclaim;
+	static bool aborted_reclaim;
 
 	delayacct_freepages_start();
 

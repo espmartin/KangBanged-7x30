@@ -54,8 +54,6 @@ enum {
 extern int panel_type;
 static struct vreg *vreg_lcm_1v8, *vreg_lcm_2v8;
 
-static bool screen_on = true;
-
 #define LCM_GPIO_CFG(gpio, func) \
 	PCOM_GPIO_CFG(gpio, func, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_4MA)
 
@@ -191,8 +189,10 @@ static int panel_power(int on)
 
 int device_fb_detect_panel(const char *name)
 {
-  if (!strcmp(name, "lcdc_spade_wvga"))
+  if (!strcmp(name, "lcdc_spade_wvga")) {
     return 0;
+  }
+  return 0;
 }
 
 /* a hacky interface to control the panel power */
