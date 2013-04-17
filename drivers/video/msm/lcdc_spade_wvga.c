@@ -44,7 +44,6 @@ enum {
 	PANEL_UNKNOW
 };
 
-static int color_enhancement = 0;
 int qspi_send_16bit(unsigned char id, unsigned data);
 int qspi_send_9bit(struct spi_msg *msg);
 
