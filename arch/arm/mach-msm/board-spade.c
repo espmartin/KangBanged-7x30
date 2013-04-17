@@ -1638,7 +1638,7 @@ static struct msm_usb_host_platform_data msm_usb_host_pdata = {
 };
 #endif
 
-#ifdef CONFIG_USB_MSM_OTG_72K
+#if 0 // CONFIG_USB_MSM_OTG_72K
 static struct vreg *vreg_3p3;
 static int msm_hsusb_ldo_init(int init)
 {
@@ -2338,9 +2338,11 @@ static uint32_t usb_ID_PIN_ouput_table[] = {
 	GPIO_CFG(SPADE_GPIO_USB_ID_PIN, 0, GPIO_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_4MA),
 };
 
+#if 0
 static uint32_t usb_suspend_output_table[] = {
 	PCOM_GPIO_CFG(SPADE_DISABLE_USB_CHARGER, 0, GPIO_OUTPUT, GPIO_NO_PULL, GPIO_4MA),
 };
+#endif
 
 void config_spade_usb_id_gpios(bool output)
 {
@@ -2354,12 +2356,14 @@ void config_spade_usb_id_gpios(bool output)
 	}
 }
 
+#if 0
 static struct cable_detect_platform_data cable_detect_pdata = {
 	.detect_type 		= CABLE_TYPE_PMIC_ADC,
 	.usb_id_pin_gpio 	= SPADE_GPIO_USB_ID_PIN,
 	.config_usb_id_gpios 	= config_spade_usb_id_gpios,
 	.get_adc_cb		= spade_get_usbid_adc,
 };
+#endif
 
 static struct msm_gpio msm_i2c_gpios_hw[] = {
 	{ GPIO_CFG(70, 1, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_16MA), "i2c_scl" },
