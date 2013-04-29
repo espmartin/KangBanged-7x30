@@ -13,6 +13,12 @@
  * GNU General Public License for more details.
  *
  */
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+#include <linux/input.h>
+#endif
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+extern void sweep2wake_setdev2(struct input_dev * input_device);
+#endif
 
 #ifndef _LINUX_SYNAPTICS_I2C_RMI_H
 #define _LINUX_SYNAPTICS_I2C_RMI_H

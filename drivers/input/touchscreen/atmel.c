@@ -125,6 +125,46 @@ static void restore_normal_threshold(struct atmel_ts_data *ts);
 static void confirm_calibration(struct atmel_ts_data *ts, uint8_t recal, uint8_t reason);
 static void multi_input_report(struct atmel_ts_data *ts);
 
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE_DISABLED
+int s2w_switch = 0;
+int s2w_temp = 0;
+#elif defined(CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE_ENABLED)
+int s2w_switch = 1;
+int s2w_temp = 1;
+#endif
+bool scr_suspended = false, exec_count = true, s2w_switch_changed = false;
+bool scr_on_touch = false, barrier[2] = {false, false};
+static struct input_dev * sweep2wake_pwrdev;
+static DEFINE_MUTEX(pwrlock);
+
+extern void sweep2wake_setdev(struct input_dev * input_device) {
+	sweep2wake_pwrdev = input_device;
+	return;
+}
+EXPORT_SYMBOL(sweep2wake_setdev);
+
+static void sweep2wake_presspwr(struct work_struct * sweep2wake_presspwr_work) {
+	input_event(sweep2wake_pwrdev, EV_KEY, KEY_POWER, 1);
+	input_event(sweep2wake_pwrdev, EV_SYN, 0, 0);
+	msleep(100);
+	input_event(sweep2wake_pwrdev, EV_KEY, KEY_POWER, 0);
+	input_event(sweep2wake_pwrdev, EV_SYN, 0, 0);
+	msleep(100);
+	mutex_unlock(&pwrlock);
+	return;
+}
+static DECLARE_WORK(sweep2wake_presspwr_work, sweep2wake_presspwr);
+
+void sweep2wake_pwrtrigger(void) {
+	if (mutex_trylock(&pwrlock)) {
+		schedule_work(&sweep2wake_presspwr_work);
+	}
+	return;
+}
+#endif
+
 static int i2c_atmel_read(struct i2c_client *client, uint16_t address, uint8_t *data, uint8_t length)
 {
 	int retry;
@@ -243,7 +283,7 @@ static ssize_t atmel_gpio_show(struct device *dev,
 	pdata = ts_data->client->dev.platform_data;
 
 	ret = gpio_get_value(pdata->gpio_irq);
-	printk(KERN_DEBUG "[TP]GPIO_TP_INT_N=%d\n", pdata->gpio_irq);
+	printk(KERN_DEBUG "GPIO_TP_INT_N=%d\n", pdata->gpio_irq);
 	sprintf(buf, "GPIO_TP_INT_N=%d\n", ret);
 	ret = strlen(buf) + 1;
 	return ret;
@@ -301,7 +341,7 @@ static ssize_t atmel_register_show(struct device *dev,
 	struct atmel_ts_data *ts_data;
 	ts_data = private_ts;
 	if (i2c_atmel_read(ts_data->client, atmel_reg_addr, ptr, 1) < 0) {
-		printk(KERN_WARNING "[TP]%s: read fail\n", __func__);
+		printk(KERN_WARNING "%s: read fail\n", __func__);
 		return ret;
 	}
 	ret += sprintf(buf, "addr: %d, data: %d\n", atmel_reg_addr, ptr[0]);
@@ -322,23 +362,23 @@ static ssize_t atmel_register_store(struct device *dev,
 		(buf[5] == ':' || buf[5] == '\n')) {
 		memcpy(buf_tmp, buf + 2, 3);
 		atmel_reg_addr = simple_strtol(buf_tmp, NULL, 10);
-		printk(KERN_DEBUG "[TP]read addr: 0x%X\n", atmel_reg_addr);
+		printk(KERN_DEBUG "read addr: 0x%X\n", atmel_reg_addr);
 		if (!atmel_reg_addr) {
-			printk(KERN_WARNING "[TP]%s: string to number fail\n",
+			printk(KERN_WARNING "%s: string to number fail\n",
 								__func__);
 			return count;
 		}
-		printk(KERN_DEBUG "[TP]%s: set atmel_reg_addr is: %d\n",
+		printk(KERN_DEBUG "%s: set atmel_reg_addr is: %d\n",
 						__func__, atmel_reg_addr);
 		if (buf[0] == 'w' && buf[5] == ':' && buf[9] == '\n') {
 			memcpy(buf_tmp, buf + 6, 3);
 			write_da = simple_strtol(buf_tmp, NULL, 10);
-			printk(KERN_DEBUG "[TP]write addr: 0x%X, data: 0x%X\n",
+			printk(KERN_DEBUG "write addr: 0x%X, data: 0x%X\n",
 						atmel_reg_addr, write_da);
 			ret = i2c_atmel_write_byte_data(ts_data->client,
 						atmel_reg_addr, write_da);
 			if (ret < 0) {
-				printk(KERN_WARNING "[TP]%s: write fail(%d)\n",
+				printk(KERN_ERR "%s: write fail(%d)\n",
 								__func__, ret);
 			}
 		}
@@ -386,7 +426,7 @@ static ssize_t atmel_regdump_show(struct device *dev,
 		for (loop_i = startAddr; loop_i <= endAddr; loop_i++) {
 			ret_t = i2c_atmel_read(ts_data->client, loop_i, ptr, 1);
 			if (ret_t < 0) {
-				printk(KERN_WARNING "[TP]dump fail, addr: %d\n",
+				printk(KERN_WARNING "dump fail, addr: %d\n",
 								loop_i);
 			}
 			count += sprintf(buf + count, "addr[%3d]: %3d, ",
@@ -420,7 +460,7 @@ static void regdump_to_kernel(void)
 		for (loop_i = startAddr; loop_i <= endAddr; loop_i++) {
 			ret_t = i2c_atmel_read(ts_data->client, loop_i, ptr, 1);
 			if (ret_t < 0) {
-				printk(KERN_WARNING "[TP]dump fail, addr: %d\n",
+				printk(KERN_WARNING "dump fail, addr: %d\n",
 								loop_i);
 			}
 			count += sprintf(buf + count, "addr[%3d]: %3d, ",
@@ -512,7 +552,7 @@ static ssize_t atmel_diag_show(struct device *dev,
 				get_object_address(ts_data, DIAGNOSTIC_T37), data, 2);
 		}
 		if (loop_j == 10)
-			printk(KERN_ERR "[TP]TOUCH_ERR:%s: Diag data not ready\n", __func__);
+			printk(KERN_ERR "%s: Diag data not ready\n", __func__);
 
 		i2c_atmel_read(ts_data->client,
 			get_object_address(ts_data, DIAGNOSTIC_T37) +
@@ -631,6 +671,44 @@ static ssize_t atmel_info_show(struct device *dev,
 
 static DEVICE_ATTR(info, S_IRUGO, atmel_info_show, NULL);
 
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+static ssize_t atmel_sweep2wake_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+	
+	if (s2w_switch == s2w_temp )
+		count += sprintf(buf, "%d\n", s2w_switch);
+	else
+		count += sprintf(buf, "%d->%d\n", s2w_switch, s2w_temp);
+
+	return count;
+}
+
+static ssize_t atmel_sweep2wake_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	if (buf[0] >= '0' && buf[0] <= '2' && buf[1] == '\n')
+		if (s2w_switch != buf[0] - '0') {
+			s2w_temp = buf[0] - '0';
+			if (scr_suspended == false)
+				s2w_switch = s2w_temp;
+			else 
+				s2w_switch_changed = true;
+		}
+
+	if (s2w_temp == 0) 
+		printk(KERN_INFO "[sweep2wake]: Disabled.\n");
+	else if (s2w_temp == 1)
+		printk(KERN_INFO "[sweep2wake]: Enabled.\n");
+	return count;
+}
+
+static DEVICE_ATTR(sweep2wake, (S_IWUSR|S_IRUGO),
+	atmel_sweep2wake_show, atmel_sweep2wake_dump);
+#endif
+
+
 static struct kobject *android_touch_kobj;
 
 static int atmel_touch_sysfs_init(void)
@@ -642,6 +720,13 @@ static int atmel_touch_sysfs_init(void)
 		ret = -ENOMEM;
 		return ret;
 	}
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+	ret = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2wake.attr);
+	if (ret) {
+		printk(KERN_ERR "%s: sysfs_create_file failed\n", __func__);
+		return ret;
+	}
+#endif
 	ret = sysfs_create_file(android_touch_kobj, &dev_attr_gpio.attr);
 	if (ret) {
 		printk(KERN_ERR "[TP]TOUCH_ERR: create_file gpio failed\n");
@@ -698,6 +783,9 @@ static int atmel_touch_sysfs_init(void)
 
 static void atmel_touch_sysfs_deinit(void)
 {
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+	sysfs_remove_file(android_touch_kobj, &dev_attr_sweep2wake.attr);
+#endif
 	sysfs_remove_file(android_touch_kobj, &dev_attr_info.attr);
 	sysfs_remove_file(android_touch_kobj, &dev_attr_htc_event.attr);
 	sysfs_remove_file(android_touch_kobj, &dev_attr_unlock.attr);
@@ -712,6 +800,7 @@ static void atmel_touch_sysfs_deinit(void)
 }
 
 #endif
+
 static int check_delta(struct atmel_ts_data*ts)
 {
 	int8_t data[T37_DATA + T37_PAGE_SIZE];
@@ -730,7 +819,7 @@ static int check_delta(struct atmel_ts_data*ts)
 			get_object_address(ts, DIAGNOSTIC_T37), data, 2);
 	}
 	if (loop_i == 10)
-		printk(KERN_ERR "[TP]TOUCH_ERR:%s: Diag data not ready\n", __func__);
+		printk(KERN_ERR "%s: Diag data not ready\n", __func__);
 
 	i2c_atmel_read(ts->client,
 		get_object_address(ts, DIAGNOSTIC_T37),
@@ -777,7 +866,7 @@ static int check_delta_full(struct atmel_ts_data *ts,
 				get_object_address(ts, DIAGNOSTIC_T37), data, 2);
 		}
 		if (loop_j == 10)
-			printk(KERN_ERR "[TP]TOUCH_ERR:%s: Diag data not ready\n", __func__);
+			printk(KERN_ERR "%s: Diag data not ready\n", __func__);
 
 		i2c_atmel_read(ts->client,
 			get_object_address(ts, DIAGNOSTIC_T37),
@@ -830,7 +919,7 @@ static void check_calibration(struct atmel_ts_data*ts)
 	}
 
 	if (loop_i == 10)
-		printk(KERN_ERR "[TP]TOUCH_ERR:%s: Diag data not ready\n", __func__);
+		printk(KERN_ERR "%s: Diag data not ready\n", __func__);
 
 	i2c_atmel_read(ts->client, get_object_address(ts, DIAGNOSTIC_T37), data,
 		T37_DATA + T37_TCH_FLAG_SIZE);
@@ -1162,6 +1251,9 @@ static void htc_input_report(struct input_dev *idev,
 static void multi_input_report(struct atmel_ts_data *ts)
 {
 	uint8_t loop_i, finger_report = 0;
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+  int prevx = 0, nextx = 0;
+#endif
 
 	for (loop_i = 0; loop_i < ts->finger_support; loop_i++) {
 		if (ts->finger_pressed & BIT(loop_i)) {
@@ -1177,6 +1269,66 @@ static void multi_input_report(struct atmel_ts_data *ts)
 				compatible_input_report(ts->input_dev, &ts->finger_data[loop_i],
 					1, (ts->finger_count == ++finger_report));
 			}
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+			//left -> right
+			if((ts->finger_count == 1) && (scr_suspended == true) && (s2w_switch == 1)) {
+				prevx = 30;
+				nextx = 200;
+				if ((barrier[0] == true) ||
+				   ((ts->finger_data[loop_i].x > prevx) &&
+				    (ts->finger_data[loop_i].x < nextx) &&
+				    (ts->finger_data[loop_i].y > 980))) {					
+					prevx = 200;
+					nextx = 800;
+					barrier[0] = true;
+					if ((barrier[1] == true) ||
+					   ((ts->finger_data[loop_i].x > prevx) &&
+					    (ts->finger_data[loop_i].x < nextx) &&
+					    (ts->finger_data[loop_i].y > 980))) {
+						prevx = 800;
+						barrier[1] = true;
+						if ((ts->finger_data[loop_i].x > prevx) &&
+						    (ts->finger_data[loop_i].y > 980)) {
+							if (exec_count) {
+								printk(KERN_INFO "[sweep2wake]: POWER ON.\n");
+								sweep2wake_pwrtrigger();
+								exec_count = false;
+								break;
+							}
+						}
+					}
+				}
+			//right -> left
+			} else if ((s2w_switch > 0) && (scr_suspended == false) && (ts->finger_count == 1)) {
+				scr_on_touch=true;
+				prevx = 1000;
+				nextx = 800;
+				if ((barrier[0] == true) ||
+				   ((ts->finger_data[loop_i].x < prevx) &&
+			    	    (ts->finger_data[loop_i].x > nextx) &&
+				    (ts->finger_data[loop_i].y > 980))) {
+					prevx = 800;
+					nextx = 200;
+					barrier[0] = true;
+					if ((barrier[1] == true) ||
+					   ((ts->finger_data[loop_i].x < prevx) &&
+					    (ts->finger_data[loop_i].x > nextx) &&
+					    (ts->finger_data[loop_i].y > 980))) {
+						prevx = 200;
+						barrier[1] = true;
+						if ((ts->finger_data[loop_i].x < prevx) &&
+						    (ts->finger_data[loop_i].y > 980)) {
+							if (exec_count) {
+								printk(KERN_INFO "[sweep2wake]: POWER OFF.\n");
+								sweep2wake_pwrtrigger();
+								exec_count = false;
+								break;
+							}
+						}
+					}
+				}
+			}
+#endif
 			if (ts->debug_log_level & 0x2)
 				printk(KERN_INFO "Finger %d=> X:%d, Y:%d w:%d, z:%d, F:%d\n",
 					loop_i + 1,
@@ -1262,6 +1414,16 @@ static irqreturn_t atmel_irq_thread(int irq, void *ptr)
 				compatible_input_report(ts->input_dev, NULL, 0, 1);
 			else
 				htc_input_report(ts->input_dev, NULL, 0, 1);
+
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+		 	/* if finger released, reset count & barriers */
+			if ((((ts->finger_count > 0)?1:0) == 0) && (s2w_switch > 0)) {
+				exec_count = true;
+				barrier[0] = false;
+				barrier[1] = false;
+				scr_on_touch = false;
+			}
+#endif
 
 			if (ts->debug_log_level & 0x2)
 				printk(KERN_INFO "Finger leave\n");
@@ -1379,7 +1541,7 @@ static int wlc_tp_status_handler_func(struct notifier_block *this,
 	struct atmel_ts_data *ts;
 	int wlc_status;
 
-	wlc_status = connect_status > 0 ? CONNECTED : NONE;
+	wlc_status = connect_status ? CONNECTED : NONE;
 	printk(KERN_INFO "[TP]wireless charger %d\n", wlc_status);
 
 	ts = private_ts;
@@ -1474,7 +1636,7 @@ static void cable_tp_status_handler_func(int connect_status)
 	ts = private_ts;
 
 #if defined(CONFIG_ARCH_MSM8X60)
-	if (connect_status == 4 || (connect_status <= 0 && ts->wlc_status)) {
+	if (connect_status == 4 || (connect_status == 0 && ts->wlc_status)) {
 		wlc_tp_status_handler_func(NULL, connect_status == 4 ? 1 : 0, NULL);
 		return;
 	}
@@ -1483,8 +1645,7 @@ static void cable_tp_status_handler_func(int connect_status)
 	printk(KERN_INFO "[TP]cable change to %d\n", connect_status);
 
 	if (connect_status != ts->status) {
-		ts->status = connect_status > 0 ? CONNECTED : NONE;
-		printk(KERN_INFO "[TP]ts->status change to %d\n", ts->status);
+		ts->status = connect_status ? CONNECTED : NONE;
 		if (!ts->status && ts->wlc_status)
 			printk(KERN_INFO "[TP]ambigurous wireless charger state\n");
 		if (ts->config_setting[CONNECTED].config[0]) {
@@ -1727,7 +1888,7 @@ static int atmel_ts_probe(struct i2c_client *client,
 		ts->power = pdata->power;
 		intr = pdata->gpio_irq;
 	} else {
-		printk(KERN_ERR "[TP]TOUCH_ERR: pdata is NULL\n");
+		printk(KERN_ERR "[TP] pdata is NULL\n");
 		goto err_get_platform_data_fail;
 	}
 
@@ -1931,7 +2092,7 @@ static int atmel_ts_probe(struct i2c_client *client,
 		cable_connect_type = cable_get_connect_type();
 		if (cable_connect_type == 4)
 			ts->wlc_status = CONNECTED;
-		else if (cable_connect_type > 0)
+		else if (cable_connect_type != 0)
 			ts->status = CONNECTED;
 #endif
 
@@ -2325,7 +2486,17 @@ static int atmel_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 
 	printk(KERN_INFO "%s:[TP]enter\n", __func__);
 
-	disable_irq(client->irq);
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+    	scr_suspended = true;
+	if (s2w_switch > 0) {
+		enable_irq_wake(client->irq);
+		printk(KERN_INFO "[sweep2wake]: suspend but keep interupt wake going.\n");
+ 	} else {
+#endif
+    		disable_irq(client->irq);
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+	}
+#endif
 
 	cancel_delayed_work_sync(&ts->unlock_work);
 	if (ts->pre_data[0] == RECALIB_UNLOCK && ts->psensor_status)
@@ -2343,10 +2514,16 @@ static int atmel_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 			ts->ATCH_EXT, 4);
 	}
 
-	i2c_atmel_write_byte_data(client,
-		get_object_address(ts, GEN_POWERCONFIG_T7) + T7_CFG_IDLEACQINT, 0x0);
-	i2c_atmel_write_byte_data(client,
-		get_object_address(ts, GEN_POWERCONFIG_T7) + T7_CFG_ACTVACQINT, 0x0);
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+  	if (s2w_switch == 0) {
+#endif
+		i2c_atmel_write_byte_data(client,
+			get_object_address(ts, GEN_POWERCONFIG_T7) + T7_CFG_IDLEACQINT, 0x0);
+		i2c_atmel_write_byte_data(client,
+			get_object_address(ts, GEN_POWERCONFIG_T7) + T7_CFG_ACTVACQINT, 0x0);
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+ 	}
+#endif
 
 	printk(KERN_INFO "%s:[TP]done\n", __func__);
 	return 0;
@@ -2357,6 +2534,14 @@ static int atmel_ts_resume(struct i2c_client *client)
 	struct atmel_ts_data *ts = i2c_get_clientdata(client);
 
 	printk(KERN_INFO "%s:[TP]enter\n", __func__);
+
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+    	scr_suspended = false;
+	if (s2w_switch > 0) {
+    		disable_irq_wake(client->irq);
+		printk(KERN_INFO "[sweep2wake]: resume but disable interupt wake.\n");
+  	}
+#endif
 
 	if (ts->id->version >= 0x20 && ts->pre_data[0] == RECALIB_NEED) {
 		if (ts->call_tchthr[0] && ts->psensor_status == 2 && !ts->wlc_status) {
@@ -2375,17 +2560,23 @@ static int atmel_ts_resume(struct i2c_client *client)
 				ts->locking_config[0]);
 		}
 	}
-
-	if (!ts->status && ts->wlc_status && ts->wlc_config[0])
-		i2c_atmel_write(ts->client,
-			get_object_address(ts, GEN_POWERCONFIG_T7),
-			ts->wlc_config,
-			get_object_size(ts, GEN_POWERCONFIG_T7));
-	else
-		i2c_atmel_write(ts->client,
-			get_object_address(ts, GEN_POWERCONFIG_T7),
-			ts->config_setting[ts->status].config_T7,
-			get_object_size(ts, GEN_POWERCONFIG_T7));
+	
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+	if (s2w_switch == 0) {
+#endif
+		if (!ts->status && ts->wlc_status && ts->wlc_config[0])
+			i2c_atmel_write(ts->client,
+				get_object_address(ts, GEN_POWERCONFIG_T7),
+				ts->wlc_config,
+				get_object_size(ts, GEN_POWERCONFIG_T7));
+		else
+			i2c_atmel_write(ts->client,
+				get_object_address(ts, GEN_POWERCONFIG_T7),
+				ts->config_setting[ts->status].config_T7,
+				get_object_size(ts, GEN_POWERCONFIG_T7));
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+  	}
+#endif
 
 	if (ts->id->version == 0x16) {
 		if (ts->config_setting[CONNECTED].config[0] && ts->status &&
@@ -2424,8 +2615,18 @@ static int atmel_ts_resume(struct i2c_client *client)
 				T6_CFG_CALIBRATE, 0x55);
 		}
 	}
-	enable_irq(client->irq);
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+  	if (s2w_switch == 0) {
+#endif
+		enable_irq(client->irq);
+#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
+  	}
+	if (s2w_switch_changed == true) {
+		s2w_switch = s2w_temp;
+		s2w_switch_changed = false;
+	}	
 
+#endif
 	printk(KERN_INFO "%s:[TP]done\n", __func__);
 	return 0;
 }
