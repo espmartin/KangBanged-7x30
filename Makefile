@@ -380,7 +380,11 @@ KBUILD_CFLAGS   := -Wall -Wstrict-prototypes -Wno-trigraphs \
 		   -fsingle-precision-constant -fpredictive-commoning -fipa-cp-clone \
                    -fmodulo-sched -fmodulo-sched-allow-regmoves \
 		   -funsafe-math-optimizations -fgcse-after-reload -ftree-vectorize -pipe \
-		   -funroll-loops -fpredictive-commoning
+		   -funroll-loops -fvect-cost-model -fpredictive-commoning
+
+ifdef CONFIG_CC_LINK_TIME_OPTIMIZATION
+KBUILD_CFLAGS   := -flto -fno-toplevel-reorder
+endif
 
 ifdef CONFIG_CC_GRAPHITE_OPTIMIZATION
 KBUILD_CFLAGS   := -floop-interchange -floop-strip-mine \
