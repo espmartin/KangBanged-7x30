@@ -1358,13 +1358,6 @@ static struct sk_buff **inet_gro_receive(struct sk_buff **head,
 			goto out;
 	}
 
-#ifdef CONFIG_HTC_NETWORK_MODIFY
-	if (IS_ERR(iph) || (!iph)) {
-		printk(KERN_ERR "[NET] iph is NULL in %s!\n", __func__);
-		goto out;
-	}
-#endif
-
 	proto = iph->protocol & (MAX_INET_PROTOS - 1);
 
 	rcu_read_lock();
@@ -1572,7 +1565,7 @@ static const struct net_protocol udp_protocol = {
 
 static const struct net_protocol icmp_protocol = {
 	.handler =	icmp_rcv,
-	.err_handler =	ping_err,
+	.err_handler =	ping_v4_err,
 	.no_policy =	1,
 	.netns_ok =	1,
 };

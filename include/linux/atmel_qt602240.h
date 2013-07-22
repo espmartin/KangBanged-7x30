@@ -2,9 +2,6 @@
 #define _LINUX_ATMEL_H
 
 #include <linux/bitops.h>
-#ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
-#include <linux/input.h>
-#endif
 
 #define ATMEL_QT602240_NAME "atmel_qt602240"
 #define ATMEL_MXT224E_NAME "atmel_mxt224e"
@@ -501,7 +498,7 @@ struct atmel_config_data {
 };
 
 #ifdef CONFIG_TOUCHSCREEN_ATMEL_SWEEP2WAKE
-extern void sweep2wake_setdev(struct input_dev * input_device);
+extern void sweep2wake_atmel_setdev(struct input_dev * input_device);
 #endif
 
 #endif

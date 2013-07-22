@@ -975,6 +975,19 @@ struct lruvec *mem_cgroup_lru_add_list(struct zone *zone, struct page *page,
 
 	pc = lookup_page_cgroup(page);
 	memcg = pc->mem_cgroup;
+
+	/*
+	 * Surreptitiously switch any uncharged page to root:
+	 * an uncharged page off lru does nothing to secure
+	 * its former mem_cgroup from sudden removal.
+	 *
+	 * Our caller holds lru_lock, and PageCgroupUsed is updated
+	 * under page_cgroup lock: between them, they make all uses
+	 * of pc->mem_cgroup safe.
+	 */
+	if (!PageCgroupUsed(pc) && memcg != root_mem_cgroup)
+		pc->mem_cgroup = memcg = root_mem_cgroup;
+
 	mz = page_cgroup_zoneinfo(memcg, page);
 	/* compound_order() is stabilized through lru_lock */
 	MEM_CGROUP_ZSTAT(mz, lru) += 1 << compound_order(page);
@@ -1356,17 +1369,26 @@ static int mem_cgroup_count_children(struct mem_cgroup *memcg)
 u64 mem_cgroup_get_limit(struct mem_cgroup *memcg)
 {
 	u64 limit;
-	u64 memsw;
 
 	limit = res_counter_read_u64(&memcg->res, RES_LIMIT);
-	limit += total_swap_pages << PAGE_SHIFT;
 
-	memsw = res_counter_read_u64(&memcg->memsw, RES_LIMIT);
 	/*
-	 * If memsw is finite and limits the amount of swap space available
-	 * to this memcg, return that limit.
+	 * Do not consider swap space if we cannot swap due to swappiness
 	 */
-	return min(limit, memsw);
+	if (mem_cgroup_swappiness(memcg)) {
+		u64 memsw;
+
+		limit += total_swap_pages << PAGE_SHIFT;
+		memsw = res_counter_read_u64(&memcg->memsw, RES_LIMIT);
+
+		/*
+		 * If memsw is finite and limits the amount of swap space
+		 * available to this memcg, return that limit.
+		 */
+		limit = min(limit, memsw);
+	}
+
+	return limit;
 }
 
 static unsigned long mem_cgroup_reclaim(struct mem_cgroup *memcg,
@@ -1710,7 +1732,7 @@ static void memcg_oom_recover(struct mem_cgroup *memcg)
 /*
  * try to call OOM killer. returns false if we should exit memory-reclaim loop.
  */
-bool mem_cgroup_handle_oom(struct mem_cgroup *memcg, gfp_t mask)
+bool mem_cgroup_handle_oom(struct mem_cgroup *memcg, gfp_t mask, int order)
 {
 	struct oom_wait_info owait;
 	bool locked, need_to_kill;
@@ -1740,7 +1762,7 @@ bool mem_cgroup_handle_oom(struct mem_cgroup *memcg, gfp_t mask)
 
 	if (need_to_kill) {
 		finish_wait(&memcg_oom_waitq, &owait.wait);
-		mem_cgroup_out_of_memory(memcg, mask);
+		mem_cgroup_out_of_memory(memcg, mask, order);
 	} else {
 		schedule();
 		finish_wait(&memcg_oom_waitq, &owait.wait);
@@ -2111,7 +2133,7 @@ static int mem_cgroup_do_charge(struct mem_cgroup *memcg, gfp_t gfp_mask,
 	if (!oom_check)
 		return CHARGE_NOMEM;
 	/* check OOM */
-	if (!mem_cgroup_handle_oom(mem_over_limit, gfp_mask))
+	if (!mem_cgroup_handle_oom(mem_over_limit, gfp_mask, get_order(csize)))
 		return CHARGE_OOM_DIE;
 
 	return CHARGE_RETRY;

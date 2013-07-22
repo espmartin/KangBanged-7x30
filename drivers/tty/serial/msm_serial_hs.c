@@ -2083,6 +2083,8 @@ static void __exit msm_serial_hs_exit(void)
 	uart_unregister_driver(&msm_hs_driver);
 }
 
+#ifndef CONFIG_BT_MSM_SLEEP
+/* Bluesleep manages uart clk control */
 static int msm_hs_runtime_idle(struct device *dev)
 {
 	/*
@@ -2117,12 +2119,16 @@ static const struct dev_pm_ops msm_hs_dev_pm_ops = {
 	.runtime_resume  = msm_hs_runtime_resume,
 	.runtime_idle    = msm_hs_runtime_idle,
 };
+#endif /* CONFIG_BT_MSM_SLEEP */
 
 static struct platform_driver msm_serial_hs_platform_driver = {
 	.remove = msm_hs_remove,
 	.driver = {
 		.name = "msm_serial_hs",
+#ifndef CONFIG_BT_MSM_SLEEP
+		/* Bluesleep manages uart clk control */
 		.pm   = &msm_hs_dev_pm_ops,
+#endif
 	},
 };
 

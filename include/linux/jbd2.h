@@ -1034,6 +1034,10 @@ extern void __journal_clean_data_list(transaction_t *transaction);
 /* Log buffer allocation */
 extern struct journal_head * jbd2_journal_get_descriptor_buffer(journal_t *);
 int jbd2_journal_next_log_block(journal_t *, unsigned long long *);
+int jbd2_journal_get_log_tail(journal_t *journal, tid_t *tid,
+			      unsigned long *block);
+void __jbd2_update_log_tail(journal_t *journal, tid_t tid, unsigned long block);
+void jbd2_update_log_tail(journal_t *journal, tid_t tid, unsigned long block);
 
 /* Commit management */
 extern void jbd2_journal_commit_transaction(journal_t *);
@@ -1083,6 +1087,11 @@ jbd2_journal_write_metadata_buffer(transaction_t	  *transaction,
 /* Transaction locking */
 extern void		__wait_on_journal (journal_t *);
 
+/* Transaction cache support */
+extern void jbd2_journal_destroy_transaction_cache(void);
+extern int  jbd2_journal_init_transaction_cache(void);
+extern void jbd2_journal_free_transaction(transaction_t *);
+
 /*
  * Journal locking.
  *
@@ -1106,9 +1115,9 @@ static inline handle_t *journal_current_handle(void)
  */
 
 extern handle_t *jbd2_journal_start(journal_t *, int nblocks);
-extern handle_t *jbd2__journal_start(journal_t *, int nblocks, int gfp_mask);
+extern handle_t *jbd2__journal_start(journal_t *, int nblocks, gfp_t gfp_mask);
 extern int	 jbd2_journal_restart(handle_t *, int nblocks);
-extern int	 jbd2__journal_restart(handle_t *, int nblocks, int gfp_mask);
+extern int	 jbd2__journal_restart(handle_t *, int nblocks, gfp_t gfp_mask);
 extern int	 jbd2_journal_extend (handle_t *, int nblocks);
 extern int	 jbd2_journal_get_write_access(handle_t *, struct buffer_head *);
 extern int	 jbd2_journal_get_create_access (handle_t *, struct buffer_head *);
@@ -1145,7 +1154,8 @@ extern int	   jbd2_journal_destroy    (journal_t *);
 extern int	   jbd2_journal_recover    (journal_t *journal);
 extern int	   jbd2_journal_wipe       (journal_t *, int);
 extern int	   jbd2_journal_skip_recovery	(journal_t *);
-extern void	   jbd2_journal_update_superblock	(journal_t *, int);
+extern void	   jbd2_journal_update_sb_log_tail	(journal_t *, tid_t,
+				unsigned long, int);
 extern void	   __jbd2_journal_abort_hard	(journal_t *);
 extern void	   jbd2_journal_abort      (journal_t *, int);
 extern int	   jbd2_journal_errno      (journal_t *);
@@ -1214,6 +1224,7 @@ extern int	jbd2_journal_set_revoke(journal_t *, unsigned long long, tid_t);
 extern int	jbd2_journal_test_revoke(journal_t *, unsigned long long, tid_t);
 extern void	jbd2_journal_clear_revoke(journal_t *);
 extern void	jbd2_journal_switch_revoke_table(journal_t *journal);
+extern void	jbd2_clear_buffer_revoked_flags(journal_t *journal);
 
 /*
  * The log thread user interface:

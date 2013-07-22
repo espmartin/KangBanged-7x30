@@ -295,7 +295,6 @@ error_return:
 }
 
 struct orlov_stats {
-	__u64 free_blocks;
 	__u32 free_inodes;
 	__u32 free_clusters;
 	__u32 used_dirs;
